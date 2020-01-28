@@ -1,2 +1,2 @@
-# service-template
-A template for all GO microservices.
+# tracking-service
+A service to calculate tracking points based on camera input.
