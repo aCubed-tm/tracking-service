@@ -34,7 +34,7 @@ func TestStage2(t *testing.T) {
 		d1.y, -d2.y, n1.y,
 		d1.z, -d2.z, n1.z,
 	}
-	rhs := p2.Sub(p1)
+	rhs := Sub(p2, p1)
 	cramerRHS := [3]float64{
 		rhs.x,
 		rhs.y,
@@ -42,12 +42,12 @@ func TestStage2(t *testing.T) {
 	}
 
 	tArr := Cramer3(cramerLHS, cramerRHS)
-	c1 := p1.Add(d1.Mul(tArr[0]))
-	c2 := p2.Add(d2.Mul(tArr[1]))
+	c1 := Add(p1, Mul(d1, tArr[0]))
+	c2 := Add(p2, Mul(d2, tArr[1]))
 	checkVector3(t, c1, Vec3(1, 0, 0))
 	checkVector3(t, c2, Vec3(1, 1, 0))
 
-	c := c1.Add(c2).Div(2)
+	c := Div(Add(c1, c2), 2)
 
 	checkVector3(t, c, Vec3(1, 0.5, 0))
 }

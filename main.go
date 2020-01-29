@@ -24,42 +24,6 @@ type Vector3 struct {
 	z float64
 }
 
-func Vec3(x, y, z float64) Vector3 {
-	return Vector3{x, y, z}
-}
-
-func (v Vector3) Add(other Vector3) Vector3 {
-	return Vector3{
-		v.x + other.x,
-		v.y + other.y,
-		v.z + other.z,
-	}
-}
-
-func (v Vector3) Sub(other Vector3) Vector3 {
-	return Vector3{
-		v.x - other.x,
-		v.y - other.y,
-		v.z - other.z,
-	}
-}
-
-func (v Vector3) Mul(operand float64) Vector3 {
-	return Vector3{
-		v.x * operand,
-		v.y * operand,
-		v.z * operand,
-	}
-}
-
-func (v Vector3) Div(operand float64) Vector3 {
-	return Vector3{
-		v.x / operand,
-		v.y / operand,
-		v.z / operand,
-	}
-}
-
 func main() {
 	log.Println("Hello, world[")
 }

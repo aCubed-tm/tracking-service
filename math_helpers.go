@@ -38,16 +38,7 @@ func UnitVectorFromAngles(yaw, pitch float64) Vector3 {
 		math.Sin(yaw)*math.Cos(pitch))
 }
 
-func CrossProduct(v1, v2 Vector3) Vector3 {
-	return Vec3(v1.y*v2.z-v1.z*v2.y,
-		v1.z*v2.x-v1.x*v2.z,
-		v1.x*v2.y-v1.y*v2.x)
-}
-
-func DotProduct(v1, v2 Vector3) float64 {
-	return v1.x*v2.x + v1.y*v2.y + v1.z*v2.z
-}
-
+// Solves a 3x4 system using Cramer's rule
 func Cramer3(lhs [9]float64, rhs [3]float64) [3]float64 {
 	lhsMat := mat.NewDense(3, 3, lhs[:])
 	res := [3]float64{0., 0., 0.}
