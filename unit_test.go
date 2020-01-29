@@ -17,27 +17,27 @@ func TestScreenToAngle(t *testing.T) {
 }
 
 func TestUnitVector(t *testing.T) {
-	x, y, z := UnitVectorFromAngles(0, 0)
-	checkFloatTriplets(t, x, y, z, 1, 0, 0)
+	vec := UnitVectorFromAngles(0, 0)
+	checkVector3f(t, vec, Vec3(1, 0, 0))
 
-	x, y, z = UnitVectorFromAngles(90, 0)
-	checkFloatTriplets(t, x, y, z, 0, 0, 1)
+	vec = UnitVectorFromAngles(90, 0)
+	checkVector3f(t, vec, Vec3(0, 0, 1))
 
-	x, y, z = UnitVectorFromAngles(0, -90)
-	checkFloatTriplets(t, x, y, z, 0, -1, 0)
+	vec = UnitVectorFromAngles(0, -90)
+	checkVector3f(t, vec, Vec3(0, -1, 0))
 
 	// haven't tested, should be right
 	val := math.Pow(2, .5) / 2
-	x, y, z = UnitVectorFromAngles(45, -45)
-	checkFloatTriplets(t, x, y, z, .5, -val, 0.5)
+	vec = UnitVectorFromAngles(45, -45)
+	checkVector3f(t, vec, Vec3(.5, -val, 0.5))
 }
 
 func TestCrossProduct(t *testing.T) {
 	// numbers taken from: https://docs.microsoft.com/en-us/dotnet/api/system.windows.media.media3d.vector3d.crossproduct
-	x, y, z := CrossProduct(20, 30, 40, 45, 70, 80)
-	checkFloatTriplets(t, x, y, z, -400, 200, 50)
+	vec := CrossProduct(Vec3(20, 30, 40), Vec3(45, 70, 80))
+	checkVector3f(t, vec, Vec3(-400, 200, 50))
 
 	// numbers taken from: https://www.mathsisfun.com/algebra/vectors-cross-product.html
-	x, y, z = CrossProduct(2, 3, 4, 5, 6, 7)
-	checkFloatTriplets(t, x, y, z, -3, 6, -3)
+	vec = CrossProduct(Vec3(2, 3, 4), Vec3(5, 6, 7))
+	checkVector3f(t, vec, Vec3(-3, 6, -3))
 }

@@ -16,6 +16,6 @@ func TestStage1(t *testing.T) {
 
 	// didn't calculate these, I just hope they're correct
 	// we wouldn't use these in stage 1, we's just store the yaw and pitch
-	uvX, uvY, uvZ := UnitVectorFromAngles(yaw, pitch)
-	checkFloatTriplets(t, uvX, uvY, uvZ, -0.27934805430813975, 0.42755509343028203, -0.8597449078861006)
+	uv := UnitVectorFromAngles(yaw, pitch)
+	checkVector3f(t, uv, Vec3(-0.27934805430813975, 0.42755509343028203, -0.8597449078861006))
 }
