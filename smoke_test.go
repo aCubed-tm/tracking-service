@@ -15,7 +15,7 @@ func TestStage1(t *testing.T) {
 	}
 
 	// didn't calculate these, I just hope they're correct
-	// we wouldn't use these in stage 1, we's just store the yaw and pitch
+	// we wouldn't use these in stage 1, we'd just store the yaw and pitch
 	uv := UnitVectorFromAngles(yaw, pitch)
 	checkVector3(t, uv, Vec3(-0.27934805430813975, 0.42755509343028203, -0.8597449078861006))
 }
@@ -28,11 +28,22 @@ func TestStage2(t *testing.T) {
 	// calculate the perpendicular line
 	n1 := CrossProduct(d1, d2)
 	checkVector3(t, n1, Vec3(0, 1, 0))
-	n2 := CrossProduct(d2, n1) // 1,0,0 not sure what exactly this is. causes problems later on
 
-	c1 := p1.Add(d1.Mul(DotProduct(p2.Sub(p1), n2) / DotProduct(d1, n2)))
-	c2 := p2.Add(d2.Mul(DotProduct(p1.Sub(p2), n1) / DotProduct(d2, n1)))
+	cramerLHS := [9]float64{
+		d1.x, -d2.x, n1.x,
+		d1.y, -d2.y, n1.y,
+		d1.z, -d2.z, n1.z,
+	}
+	rhs := p2.Sub(p1)
+	cramerRHS := [3]float64{
+		rhs.x,
+		rhs.y,
+		rhs.z,
+	}
 
+	tArr := Cramer3(cramerLHS, cramerRHS)
+	c1 := p1.Add(d1.Mul(tArr[0]))
+	c2 := p2.Add(d2.Mul(tArr[1]))
 	checkVector3(t, c1, Vec3(1, 0, 0))
 	checkVector3(t, c2, Vec3(1, 1, 0))
 

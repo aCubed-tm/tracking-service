@@ -1,6 +1,9 @@
 package main
 
-import "math"
+import (
+	"gonum.org/v1/gonum/mat"
+	"math"
+)
 
 func InterpolatePosition(cap1, cap2 CaptureInfo) Vector3 {
 	panic("not yet implemented")
@@ -43,6 +46,20 @@ func CrossProduct(v1, v2 Vector3) Vector3 {
 
 func DotProduct(v1, v2 Vector3) float64 {
 	return v1.x*v2.x + v1.y*v2.y + v1.z*v2.z
+}
+
+func Cramer3(lhs [9]float64, rhs [3]float64) [3]float64 {
+	lhsMat := mat.NewDense(3, 3, lhs[:])
+	res := [3]float64{0., 0., 0.}
+	buffer := make([]float64, 3)
+	det := mat.Det(lhsMat)
+	for c := range rhs {
+		mat.Col(buffer, c, lhsMat)
+		lhsMat.SetCol(c, rhs[:])
+		res[c] = mat.Det(lhsMat) / det
+		lhsMat.SetCol(c, buffer)
+	}
+	return res
 }
 
 func ToRadians(degrees float64) float64 {
