@@ -5,8 +5,47 @@ import (
 	"math"
 )
 
-func InterpolatePosition(cap1, cap2 CaptureInfo) Vector3 {
-	panic("not yet implemented")
+func MakeCaptureInfo(posX, posY float64, camera CameraInfo) CaptureInfo {
+	// take the absolute screen coordinates and screen resolution+fov to calculate yaw and pitch
+	yaw, pitch := ScreenToYawPitch(posX, posY, float64(camera.resX), float64(camera.resY), float64(camera.fov))
+	uv := UnitVectorFromAngles(yaw, pitch)
+
+	return CaptureInfo{
+		direction: uv,
+		origin:    camera.pos,
+	}
+}
+
+func CalculateIntersection(capture1 CaptureInfo, capture2 CaptureInfo) Vector3 {
+	p1, d1 := capture1.origin, capture1.direction
+	p2, d2 := capture2.origin, capture2.direction
+
+	// assuming 2 vectors v1 and v2 defined by v=p+t*d, there is one and only one direction vector d3 that is
+	// perpendicular to both v1 and v2. this vector also happens to describe the shortest distance between these other
+	// vectors
+	// calculate that perpendicular vector
+	d3 := CrossProduct(d1, d2)
+
+	// create a system which solves for t1, t2 and t3 for the case where v3 and v2 intersect
+	cramerLHS := [9]float64{
+		d1.x, -d2.x, d3.x,
+		d1.y, -d2.y, d3.y,
+		d1.z, -d2.z, d3.z,
+	}
+	rhs := Sub(p2, p1)
+	cramerRHS := [3]float64{
+		rhs.x,
+		rhs.y,
+		rhs.z,
+	}
+	tArr := Cramer3(cramerLHS, cramerRHS)
+
+	// knowing t1, t2 and t3, we can calculate the points on v1 and v2 that are closest to each other
+	c1 := Add(p1, Mul(d1, tArr[0]))
+	c2 := Add(p2, Mul(d2, tArr[1]))
+
+	// return their average
+	return Div(Add(c1, c2), 2)
 }
 
 // fov is the angle covered by the widest axis, usually width
@@ -55,8 +94,4 @@ func Cramer3(lhs [9]float64, rhs [3]float64) [3]float64 {
 
 func ToRadians(degrees float64) float64 {
 	return degrees * math.Pi / 180
-}
-
-func ToDegrees(radians float64) float64 {
-	return radians / math.Pi * 180
 }
