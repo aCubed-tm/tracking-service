@@ -8,6 +8,9 @@ import (
 type server struct{}
 
 func (s server) AddCapture(_ context.Context, req *proto.AddCaptureRequest) (*proto.AddCaptureReply, error) {
-	panic("implement me")
+	err := insertCapture(req.ObjectUuid, req.CameraUuid, req.Time, req.CaptureX, req.CaptureY)
+	if err != nil {
+		return nil, err
+	}
+	return &proto.AddCaptureReply{}, nil
 }
-
