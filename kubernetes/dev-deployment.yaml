@@ -1,0 +1,23 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+    name: tracking-service 
+    namespace: acubed
+    labels:
+      app: tracking-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tracking-service
+  template:
+    metadata:
+      labels:
+        app: tracking-service 
+    spec:
+      containers:
+        - name: tracking-service 
+          imagePullPolicy: Never
+          image: tracking-service
+          ports:
+          - containerPort: 50551

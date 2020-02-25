@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: trackingms
+    namespace: acubed
+spec:
+    type: LoadBalancer
+    ports:
+    - port: 50551 
+    selector:
+        app: trackingms
+---
+apiVersion : apps/v1beta1
+kind: Deployment
+metadata:
+    name: trackingms 
+    namespace: acubed
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: trackingms 
+    spec:
+      containers:
+        - name: trackingms 
+          imagePullPolicy: Always
+          image: acubedcr.azurecr.io/trackingms:buddy
+          ports:
+          - containerPort: 50551
