@@ -46,7 +46,7 @@ type ObjectWithLastLocation struct {
 }
 
 type Location struct {
-	X, Y, Z float32
+	X, Y, Z float64
 	Time    int64
 }
 
@@ -63,9 +63,9 @@ func getAllObjects() ([]ObjectWithLastLocation, error) {
 				Name: rec.GetByIndex(1).(string),
 				Note: rec.GetByIndex(2).(string),
 				LastLocation: Location{
-					X:    rec.GetByIndex(3).(float32),
-					Y:    rec.GetByIndex(4).(float32),
-					Z:    rec.GetByIndex(5).(float32),
+					X:    rec.GetByIndex(3).(float64),
+					Y:    rec.GetByIndex(4).(float64),
+					Z:    rec.GetByIndex(5).(float64),
 					Time: rec.GetByIndex(6).(int64),
 				},
 			})
@@ -90,9 +90,9 @@ func getObjectHistory(uuid string) ([]Location, error) {
 		for result.Next() {
 			rec := result.Record()
 			ret = append(ret, Location{
-				X:    rec.GetByIndex(0).(float32),
-				Y:    rec.GetByIndex(1).(float32),
-				Z:    rec.GetByIndex(2).(float32),
+				X:    rec.GetByIndex(0).(float64),
+				Y:    rec.GetByIndex(1).(float64),
+				Z:    rec.GetByIndex(2).(float64),
 				Time: rec.GetByIndex(3).(int64),
 			})
 		}
@@ -108,19 +108,19 @@ func getObjectHistory(uuid string) ([]Location, error) {
 
 type CaptureWithId struct {
 	CameraUuid                string
-	X, Y                      float32
+	X, Y                      int64
 	Time, Id                  int64
-	CamResX, CamResY          int32
-	Fov                       float32
-	CamPosX, CamPosY, CamPosZ float32
-	CamYaw, CamPitch          float32
+	CamResX, CamResY          int64
+	Fov                       int64
+	CamPosX, CamPosY, CamPosZ float64
+	CamYaw, CamPitch          float64
 }
 
-func getObjectTraces(uuid string) ([]CaptureWithId, error) {
-	query := `MATCH (p:TrackingPoint)-[:TRACKS]->(:TracableObject{uuid:{uuid}}) WITH p
+func getObjectCaptures(uuid string) ([]CaptureWithId, error) {
+	query := `MATCH (cam:Camera)<-[:CAPTURED_BY]-(p:Capture)-[:CAPTURE_OF]->(:TracableObject{uuid:{uuid}}) WITH p, cam
 	          ORDER BY p.time DESC
-	          RETURN p.x, p.y, p.z, p.time, ID(p),
-	              cam.resolutionX, cam.resolutionY, cam.fieldOfView
+	          RETURN p.cameraX, p.cameraY, p.time, ID(p), cam.uuid,
+	              cam.resolutionX, cam.resolutionY, cam.fieldOfView,
 	              cam.locationX, cam.locationY, cam.locationZ, cam.yaw, cam.pitch`
 	params := map[string]interface{}{"uuid": uuid}
 	ret, err := Fetch(query, params, func(result neo4j.Result) (interface{}, error) {
@@ -128,19 +128,19 @@ func getObjectTraces(uuid string) ([]CaptureWithId, error) {
 		for result.Next() {
 			rec := result.Record()
 			ret = append(ret, CaptureWithId{
-				X:          rec.GetByIndex(0).(float32),
-				Y:          rec.GetByIndex(1).(float32),
+				X:          rec.GetByIndex(0).(int64),
+				Y:          rec.GetByIndex(1).(int64),
 				Time:       rec.GetByIndex(2).(int64),
-				CameraUuid: rec.GetByIndex(3).(string),
-				Id:         rec.GetByIndex(4).(int64),
-				CamResX:    rec.GetByIndex(5).(int32),
-				CamResY:    rec.GetByIndex(6).(int32),
-				Fov:        rec.GetByIndex(7).(float32),
-				CamPosX:    rec.GetByIndex(8).(float32),
-				CamPosY:    rec.GetByIndex(9).(float32),
-				CamPosZ:    rec.GetByIndex(10).(float32),
-				CamYaw:     rec.GetByIndex(11).(float32),
-				CamPitch:   rec.GetByIndex(12).(float32),
+				Id:         rec.GetByIndex(3).(int64),
+				CameraUuid: rec.GetByIndex(4).(string),
+				CamResX:    rec.GetByIndex(5).(int64),
+				CamResY:    rec.GetByIndex(6).(int64),
+				Fov:        rec.GetByIndex(7).(int64),
+				CamPosX:    rec.GetByIndex(8).(float64),
+				CamPosY:    rec.GetByIndex(9).(float64),
+				CamPosZ:    rec.GetByIndex(10).(float64),
+				CamYaw:     rec.GetByIndex(11).(float64),
+				CamPitch:   rec.GetByIndex(12).(float64),
 			})
 		}
 

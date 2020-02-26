@@ -74,7 +74,7 @@ func (s server) UpdatePositions(_ context.Context, req *proto.UpdatePositionsReq
 
 	for _, e := range toHandle {
 		// TODO: should we only take records that are older than 5s?
-		history, err := getObjectTraces(e)
+		history, err := getObjectCaptures(e)
 		if err != nil {
 			return nil, err
 		}
@@ -92,7 +92,7 @@ func (s server) UpdatePositions(_ context.Context, req *proto.UpdatePositionsReq
 		for _, pair := range pairs {
 			a, b := pair.A, pair.B
 			capA := MakeCaptureInfo(float64(a.X), float64(a.Y), CameraInfo{
-				pos:   Vec3(float64(a.CamPosX), float64(a.CamPosY), float64(a.CamPosZ)),
+				pos:   Vec3(a.CamPosX, a.CamPosY, a.CamPosZ),
 				pitch: a.CamPitch,
 				yaw:   a.CamYaw,
 				resX:  a.CamResX,
@@ -100,7 +100,7 @@ func (s server) UpdatePositions(_ context.Context, req *proto.UpdatePositionsReq
 				fov:   a.Fov,
 			})
 			capB := MakeCaptureInfo(float64(b.X), float64(b.Y), CameraInfo{
-				pos:   Vec3(float64(b.CamPosX), float64(b.CamPosY), float64(b.CamPosZ)),
+				pos:   Vec3(b.CamPosX, b.CamPosY, b.CamPosZ),
 				pitch: b.CamPitch,
 				yaw:   b.CamYaw,
 				resX:  b.CamResX,
@@ -108,7 +108,7 @@ func (s server) UpdatePositions(_ context.Context, req *proto.UpdatePositionsReq
 				fov:   b.Fov,
 			})
 			intersection := CalculateIntersection(capA, capB)
-			err := insertTrackingPoint(req.Uuid, (a.Time + b.Time)/2, intersection)
+			err := insertTrackingPoint(req.Uuid, (a.Time+b.Time)/2, intersection)
 			if err != nil {
 				// just log, don't exit
 				log.Printf("Error during insertion of new tracking point: %v", err)
