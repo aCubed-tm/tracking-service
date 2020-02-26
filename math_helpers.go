@@ -7,7 +7,17 @@ import (
 
 func MakeCaptureInfo(posX, posY float64, camera CameraInfo) CaptureInfo {
 	// take the absolute screen coordinates and screen resolution+fov to calculate yaw and pitch
+	// these yaw and pitch are relative to the camera's yaw and pitch!
 	yaw, pitch := ScreenToYawPitch(posX, posY, float64(camera.resX), float64(camera.resY), float64(camera.fov))
+
+	// use camera yaw/pitch to adjust the one we calculated
+	yaw = 90.0 - yaw + camera.yaw // subtracting 90 from the yaw because yaw=0 is the Y axis
+	pitch += camera.pitch
+
+	// why the fuck does go not have float modulo
+	yaw = float64(int64(yaw) % int64(360.0))
+	pitch = float64(int64(pitch) % int64(360.0))
+
 	uv := UnitVectorFromAngles(yaw, pitch)
 
 	return CaptureInfo{
@@ -49,14 +59,15 @@ func CalculateIntersection(capture1 CaptureInfo, capture2 CaptureInfo) Vector3 {
 }
 
 // fov is the angle covered by the widest axis, usually width
+// this function is basically an overload for RelScreenToYawPitch that accepts screenspace coordinates
 func ScreenToYawPitch(screenX, screenY, screenWidth, screenHeight, fov float64) (float64, float64) {
 	halfWidth, halfHeight := screenWidth/2, screenHeight/2
 	if screenWidth > screenHeight {
-		ratio := screenHeight / screenWidth
+		ratio := screenHeight / screenWidth // < 1
 		innerFov := fov * ratio
 		return RelScreenToYawPitch((screenX-halfWidth)/halfWidth/ratio, (screenY-halfHeight)/halfHeight, innerFov)
 	} else {
-		ratio := screenWidth / screenHeight
+		ratio := screenWidth / screenHeight // < 1
 		innerFov := fov * ratio
 		return RelScreenToYawPitch((screenX-halfWidth)/halfWidth, (screenY-halfHeight)/halfHeight/ratio, innerFov)
 	}
@@ -65,16 +76,18 @@ func ScreenToYawPitch(screenX, screenY, screenWidth, screenHeight, fov float64) 
 // screenX and screenY are coordinates relative to the "inner square" of the viewport
 // this means that one of them can be bigger than 1
 func RelScreenToYawPitch(screenX, screenY, fov float64) (float64, float64) {
-	return screenX * fov, screenY * fov
+	// division by 2 because fov goes in both directions
+	return screenX * fov / 2, screenY * fov / 2
 }
 
-// Transform yaw and pitch to unit vector, where Y is the up direction
+// Transform yaw and pitch to unit vector, where Z is up
 func UnitVectorFromAngles(yaw, pitch float64) Vector3 {
 	yaw = ToRadians(yaw)
 	pitch = ToRadians(pitch)
-	return Vec3(math.Cos(yaw)*math.Cos(pitch),
-		math.Sin(pitch),
-		math.Sin(yaw)*math.Cos(pitch))
+	return Vec3(
+		math.Cos(yaw)*math.Cos(pitch),
+		math.Sin(yaw)*math.Cos(pitch),
+		math.Sin(pitch))
 }
 
 // Solves a 3x4 system using Cramer's rule

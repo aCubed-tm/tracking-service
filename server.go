@@ -108,13 +108,13 @@ func (s server) UpdatePositions(_ context.Context, req *proto.UpdatePositionsReq
 				fov:   b.Fov,
 			})
 			intersection := CalculateIntersection(capA, capB)
-			err := insertTrackingPoint(req.Uuid, (a.Time+b.Time)/2, intersection)
+			err := insertTrackingPoint(e, (a.Time+b.Time)/2, intersection)
 			if err != nil {
 				// just log, don't exit
 				log.Printf("Error during insertion of new tracking point: %v", err)
 			} else {
 				// if no error, remove old points
-				log.Printf("Inserted new tracking point: %v", intersection)
+				log.Printf("Inserted new tracking point: %v (from prespectives %v and %v)", intersection, capA, capB)
 				// TODO: ignoring errors for now
 				_ = deleteNode(a.Id)
 				_ = deleteNode(b.Id)
