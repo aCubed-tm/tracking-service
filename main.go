@@ -10,7 +10,7 @@ import (
 
 type CameraInfo struct {
 	pos        Vector3
-	resX, resY int16
+	resX, resY int32
 	pitch, yaw float32
 	fov        float32
 }

@@ -105,3 +105,68 @@ func getObjectHistory(uuid string) ([]Location, error) {
 
 	return ret.([]Location), nil
 }
+
+type CaptureWithId struct {
+	CameraUuid                string
+	X, Y                      float32
+	Time                      int32
+	Id                        int64
+	CamResX, CamResY          int32
+	Fov                       float32
+	CamPosX, CamPosY, CamPosZ float32
+	CamYaw, CamPitch          float32
+}
+
+func getObjectTraces(uuid string) ([]CaptureWithId, error) {
+	query := `MATCH (p:TrackingPoint)-[:TRACKS]->(:TracableObject{uuid:{uuid}}) WITH p
+	          ORDER BY p.time DESC
+	          RETURN p.x, p.y, p.z, p.time, ID(p),
+	              cam.resolutionX, cam.resolutionY, cam.fieldOfView
+	              cam.locationX, cam.locationY, cam.locationZ, cam.yaw, cam.pitch`
+	params := map[string]interface{}{"uuid": uuid}
+	ret, err := Fetch(query, params, func(result neo4j.Result) (interface{}, error) {
+		var ret []CaptureWithId
+		for result.Next() {
+			rec := result.Record()
+			ret = append(ret, CaptureWithId{
+				X:          rec.GetByIndex(0).(float32),
+				Y:          rec.GetByIndex(1).(float32),
+				Time:       rec.GetByIndex(2).(int32),
+				CameraUuid: rec.GetByIndex(3).(string),
+				Id:         rec.GetByIndex(4).(int64),
+				CamResX:    rec.GetByIndex(5).(int32),
+				CamResY:    rec.GetByIndex(6).(int32),
+				Fov:        rec.GetByIndex(7).(float32),
+				CamPosX:    rec.GetByIndex(8).(float32),
+				CamPosY:    rec.GetByIndex(9).(float32),
+				CamPosZ:    rec.GetByIndex(10).(float32),
+				CamYaw:     rec.GetByIndex(11).(float32),
+				CamPitch:   rec.GetByIndex(12).(float32),
+			})
+		}
+
+		return ret, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return ret.([]CaptureWithId), nil
+}
+
+func getAllTraceableObjects() ([]string, error) {
+	return FetchStringArray("MATCH (o:TracableObject) RETURN o.uuid", map[string]interface{}{})
+}
+
+func insertTrackingPoint(uuid string, time int32, v Vector3) error {
+	query := `MATCH (o:TracableObject{uuid:{uuid}})
+	          CREATE (:TrackingPoint {time:{time}, x:{x}, y:{y}, z:{z}})-[:TRACKS]->(o)`
+	params := map[string]interface{}{"uuid": uuid, "time": time, "x": v.x, "y": v.y, "z": v.z}
+	return Write(query, params)
+}
+
+func deleteNode(id int64) error {
+	query := "MATCH (n) where ID(n)={id} DETACH DELETE n"
+	params := map[string]interface{}{"id": id}
+	return Write(query, params)
+}
