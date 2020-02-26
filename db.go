@@ -32,7 +32,7 @@ func newSession(accessMode neo4j.AccessMode) neo4j.Session {
 }
 
 // should be able to return whether added or not :(
-func insertCapture(objUuid, camUuid string, time int32, posX, posY float32) error {
+func insertCapture(objUuid, camUuid string, time int64, posX, posY float32) error {
 	query := `MATCH (o:TracableObject{uuid:{objUuid}})
 	          MATCH (c:Camera{uuid:{camUuid}})
 	          CREATE (c)<-[:CAPTURED_BY]-(x:Capture{time:{time}, cameraX:{posX}, cameraY:{posY}})-[:CAPTURE_OF]->(o)`
@@ -47,7 +47,7 @@ type ObjectWithLastLocation struct {
 
 type Location struct {
 	X, Y, Z float32
-	Time    int32
+	Time    int64
 }
 
 func getAllObjects() ([]ObjectWithLastLocation, error) {
@@ -66,7 +66,7 @@ func getAllObjects() ([]ObjectWithLastLocation, error) {
 					X:    rec.GetByIndex(3).(float32),
 					Y:    rec.GetByIndex(4).(float32),
 					Z:    rec.GetByIndex(5).(float32),
-					Time: rec.GetByIndex(6).(int32),
+					Time: rec.GetByIndex(6).(int64),
 				},
 			})
 		}
@@ -93,7 +93,7 @@ func getObjectHistory(uuid string) ([]Location, error) {
 				X:    rec.GetByIndex(0).(float32),
 				Y:    rec.GetByIndex(1).(float32),
 				Z:    rec.GetByIndex(2).(float32),
-				Time: rec.GetByIndex(3).(int32),
+				Time: rec.GetByIndex(3).(int64),
 			})
 		}
 
@@ -109,8 +109,7 @@ func getObjectHistory(uuid string) ([]Location, error) {
 type CaptureWithId struct {
 	CameraUuid                string
 	X, Y                      float32
-	Time                      int32
-	Id                        int64
+	Time, Id                  int64
 	CamResX, CamResY          int32
 	Fov                       float32
 	CamPosX, CamPosY, CamPosZ float32
@@ -131,7 +130,7 @@ func getObjectTraces(uuid string) ([]CaptureWithId, error) {
 			ret = append(ret, CaptureWithId{
 				X:          rec.GetByIndex(0).(float32),
 				Y:          rec.GetByIndex(1).(float32),
-				Time:       rec.GetByIndex(2).(int32),
+				Time:       rec.GetByIndex(2).(int64),
 				CameraUuid: rec.GetByIndex(3).(string),
 				Id:         rec.GetByIndex(4).(int64),
 				CamResX:    rec.GetByIndex(5).(int32),
@@ -158,7 +157,7 @@ func getAllTraceableObjects() ([]string, error) {
 	return FetchStringArray("MATCH (o:TracableObject) RETURN o.uuid", map[string]interface{}{})
 }
 
-func insertTrackingPoint(uuid string, time int32, v Vector3) error {
+func insertTrackingPoint(uuid string, time int64, v Vector3) error {
 	query := `MATCH (o:TracableObject{uuid:{uuid}})
 	          CREATE (:TrackingPoint {time:{time}, x:{x}, y:{y}, z:{z}})-[:TRACKS]->(o)`
 	params := map[string]interface{}{"uuid": uuid, "time": time, "x": v.x, "y": v.y, "z": v.z}
